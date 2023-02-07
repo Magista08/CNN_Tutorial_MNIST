@@ -11,7 +11,7 @@ from torchvision.transforms import ToTensor
 from structure import NeuralNetwork
 
 # Plotting
-import matplotlib as plt
+import matplotlib.pyplot as plt
 
 # Global
 if torch.cuda.is_available():
@@ -21,7 +21,7 @@ else:
 TRAIN_LOCATION = "./train_data"
 TEST_LOCATION = "./test_data"
 BATCH_SIZE = 256
-EPOCHS = 20
+EPOCHS = 100
 
 
 def train(data_loader, nn_model, loss_fn_train, optimizer_train):
@@ -73,6 +73,7 @@ def test(data_loader, nn_model, loss_fn_test):
 
 
 if __name__ == '__main__':
+    print(DEVICE)
     # Download the train data and test data
     if not os.path.isdir("train_data"):
         train_get_control = True
@@ -97,7 +98,7 @@ if __name__ == '__main__':
 
     # Init data list
     train_losses, train_correct = list(), list()
-    test_loses, test_correct = list(), list()
+    test_losses,  test_correct = list(), list()
 
     # Start Train
     print("Start Trainning")
@@ -108,17 +109,37 @@ if __name__ == '__main__':
         temp_loss, temp_correct = train(train_loader, model, loss_fn, optimizer)
         temp_training_time = time.time()
         print(f"Training time:{temp_training_time - beginning_time}")
-        beginning_time = temp_training_time
 
         # Record
         train_losses.append(temp_loss)
-        train_correct.append(temp_correct)
+        train_correct.append(1 - temp_correct)
 
         # Test
         temp_loss, temp_correct = test(test_loader, model, loss_fn)
 
         # Record
-        test_loses.append(temp_loss)
-        test_correct.append(temp_correct)
-    
+        test_losses.append(temp_loss)
+        test_correct.append(1 - temp_correct)
+
+    # Init figure
+    fig = plt.figure()
+    axes1 = plt.subplot(1, 2, 1)
+    axes2 = plt.subplot(1, 2, 2)
+
+    # Draw training data
+    axes1.errorbar(range(EPOCHS), train_losses, yerr=train_correct, label="Train Data")
+    axes1.set_xlabel("Epoches")
+    axes1.set_ylabel("Traindata")
+    axes1.set_title("Training Data Records")
+
+    # Draw testing data
+    axes2.errorbar(range(EPOCHS), test_losses, yerr=test_correct, label="Test Data")
+    axes2.set_xlabel("Epoches")
+    axes2.set_ylabel("Test Losses")
+    axes2.set_title("Testing Data Records")
+
+    # Show the picture
+    plt.show()
+
+    # Finish the code
     print("DONE!")
