@@ -62,10 +62,15 @@ def test(data_loader, nn_model, loss_fn_test):
     test_loss, correct = 0, 0
     with torch.no_grad():
         for X, y in data_loader:
+            # Test
             X, y = X.to(DEVICE), y.to(DEVICE)
             pred = nn_model(X)
+
+            # Errors
             test_loss += loss_fn_test(pred, y).item()
             correct += (pred.argmax(1) == y).type(torch.float).sum().item()
+
+    # Calculate errors
     test_loss /= num_batches
     correct /= size
     print(f"Test Error: \n Accuracy: {(100 * correct):>0.1f}%, Avg loss: {test_loss:>8f}\n")
@@ -73,7 +78,6 @@ def test(data_loader, nn_model, loss_fn_test):
 
 
 if __name__ == '__main__':
-    print(DEVICE)
     # Download the train data and test data
     if not os.path.isdir("train_data"):
         train_get_control = True
@@ -104,6 +108,7 @@ if __name__ == '__main__':
     print("Start Trainning")
 
     for t in range(EPOCHS):
+        # Train
         print(f"Epoch {t + 1}\n-----------------------------------------")
         beginning_time = time.time()
         temp_loss, temp_correct = train(train_loader, model, loss_fn, optimizer)
