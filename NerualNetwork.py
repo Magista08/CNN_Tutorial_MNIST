@@ -21,8 +21,7 @@ else:
 TRAIN_LOCATION = "./train_data"
 TEST_LOCATION = "./test_data"
 BATCH_SIZE = 256
-EPOCHS = 1000
-LOOPINGS = 1
+EPOCHS = 1
 
 
 def train(data_loader, nn_model, loss_fn_train, optimizer_train):
@@ -98,63 +97,67 @@ if __name__ == '__main__':
 
     # Init data list
     print("Start Trainning")
-    for loop in range(LOOPINGS):
 
-        # Init the model
-        model = NeuralNetwork().to(DEVICE)
-        loss_fn = nn.CrossEntropyLoss()
-        optimizer = torch.optim.SGD(model.parameters(), lr=1e-3)
+    # Init the model
+    model = NeuralNetwork().to(DEVICE)
+    loss_fn = nn.CrossEntropyLoss()
+    optimizer = torch.optim.SGD(model.parameters(), lr=1e-3)
 
-        train_losses, train_correct = list(), list()
-        test_losses, test_correct = list(), list()
+    train_losses, train_correct = list(), list()
+    test_losses, test_correct = list(), list()
 
-        # Start Train
-        for t in range(EPOCHS):
-            # Train
-            print(f"Epoch {t + 1}\n-----------------------------------------")
-            beginning_time = time.time()
-            temp_loss, temp_correct = train(train_loader, model, loss_fn, optimizer)
-            temp_training_time = time.time()
-            print(f"Training time:{temp_training_time - beginning_time}")
+    # Start Train
+    for t in range(EPOCHS):
+        # Train
+        print(f"Epoch {t + 1}\n-----------------------------------------")
+        beginning_time = time.time()
+        temp_loss, temp_correct = train(train_loader, model, loss_fn, optimizer)
+        temp_training_time = time.time()
+        print(f"Training time:{temp_training_time - beginning_time}")
 
-            # Record
-            train_losses.append(temp_loss)
-            train_correct.append(1 - temp_correct)
+        # Record
+        train_losses.append(temp_loss)
+        train_correct.append(1 - temp_correct)
 
-            # Test
-            temp_loss, temp_correct = test(test_loader, model, loss_fn)
+        # Test
+        temp_loss, temp_correct = test(test_loader, model, loss_fn)
 
-            # Record
-            test_losses.append(temp_loss)
-            test_correct.append(1 - temp_correct)
+        # Record
+        test_losses.append(temp_loss)
+        test_correct.append(1 - temp_correct)
 
-        # Init figure
-        fig = plt.figure()
-        axes1 = plt.subplot(1, 2, 1)
-        axes2 = plt.subplot(1, 2, 2)
+    # Init figure
+    fig = plt.figure()
+    axes1 = plt.subplot(1, 2, 1)
+    axes2 = plt.subplot(1, 2, 2)
 
-        # Draw training data
-        axes1.errorbar(range(EPOCHS), train_losses, yerr=train_correct, label="Train Data")
-        axes1.set_xlabel("Epoches")
-        axes1.set_ylabel("Traindata")
-        axes1.set_title("Training Data Records")
+    # Draw training data
+    axes1.errorbar(range(EPOCHS), train_losses, yerr=train_correct, label="Train Data")
+    axes1.set_xlabel("Epoches")
+    axes1.set_ylabel("Traindata")
+    axes1.set_title("Training Data Records")
 
-        # Draw testing data
-        axes2.errorbar(range(EPOCHS), test_losses, yerr=test_correct, label="Test Data")
-        axes2.set_xlabel("Epoches")
-        axes2.set_ylabel("Test Losses")
-        axes2.set_title("Testing Data Records")
+    # Draw testing data
+    axes2.errorbar(range(EPOCHS), test_losses, yerr=test_correct, label="Test Data")
+    axes2.set_xlabel("Epoches")
+    axes2.set_ylabel("Test Losses")
+    axes2.set_title("Testing Data Records")
 
-        # Save the picture
-        plt.savefig(f"./Results/Final_train_{loop + 1}.png")
-        
+    # Save the picture
+    plt.savefig(f"./Results/Final_train_1.png")
 
-        # Clean the figure
-        axes1.clear()
-        axes2.clear()
-        plt.cla()
-        plt.clf()
+
+    # Clean the figure
+    #    axes1.clear()
+    #    axes2.clear()
+    #    plt.cla()
+    #    plt.clf()
 
     # Finish the code
-    plt.show()
+    # plt.show()
+
+    # Save
+    model.eval()
+    dummy_input = torch.randn(1, train_loader.batch_size)
+    torch.onnx.export(model, dummy_input, "model.onnx", verbose=True)
     print("DONE!")
