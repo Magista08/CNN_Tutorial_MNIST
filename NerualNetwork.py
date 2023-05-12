@@ -8,7 +8,7 @@ from torch.utils.data import DataLoader
 from torch import nn
 from torchvision.datasets import mnist
 from torchvision.transforms import ToTensor
-from structure import NeuralNetwork
+from NerualNetwork_init import NeuralNetwork
 
 # Plotting
 import matplotlib.pyplot as plt
@@ -21,7 +21,8 @@ else:
 TRAIN_LOCATION = "./train_data"
 TEST_LOCATION = "./test_data"
 BATCH_SIZE = 256
-EPOCHS = 100
+EPOCHS = 1000
+LOOPINGS = 1
 
 
 def train(data_loader, nn_model, loss_fn_train, optimizer_train):
@@ -95,56 +96,65 @@ if __name__ == '__main__':
     train_loader = DataLoader(train_dataset, batch_size=BATCH_SIZE)
     test_loader = DataLoader(test_dataset, batch_size=BATCH_SIZE)
 
-    # Init the model
-    model = NeuralNetwork().to(DEVICE)
-    loss_fn = nn.CrossEntropyLoss()
-    optimizer = torch.optim.SGD(model.parameters(), lr=1e-3)
-
     # Init data list
-    train_losses, train_correct = list(), list()
-    test_losses,  test_correct = list(), list()
-
-    # Start Train
     print("Start Trainning")
+    for loop in range(LOOPINGS):
 
-    for t in range(EPOCHS):
-        # Train
-        print(f"Epoch {t + 1}\n-----------------------------------------")
-        beginning_time = time.time()
-        temp_loss, temp_correct = train(train_loader, model, loss_fn, optimizer)
-        temp_training_time = time.time()
-        print(f"Training time:{temp_training_time - beginning_time}")
+        # Init the model
+        model = NeuralNetwork().to(DEVICE)
+        loss_fn = nn.CrossEntropyLoss()
+        optimizer = torch.optim.SGD(model.parameters(), lr=1e-3)
 
-        # Record
-        train_losses.append(temp_loss)
-        train_correct.append(1 - temp_correct)
+        train_losses, train_correct = list(), list()
+        test_losses, test_correct = list(), list()
 
-        # Test
-        temp_loss, temp_correct = test(test_loader, model, loss_fn)
+        # Start Train
+        for t in range(EPOCHS):
+            # Train
+            print(f"Epoch {t + 1}\n-----------------------------------------")
+            beginning_time = time.time()
+            temp_loss, temp_correct = train(train_loader, model, loss_fn, optimizer)
+            temp_training_time = time.time()
+            print(f"Training time:{temp_training_time - beginning_time}")
 
-        # Record
-        test_losses.append(temp_loss)
-        test_correct.append(1 - temp_correct)
+            # Record
+            train_losses.append(temp_loss)
+            train_correct.append(1 - temp_correct)
 
-    # Init figure
-    fig = plt.figure()
-    axes1 = plt.subplot(1, 2, 1)
-    axes2 = plt.subplot(1, 2, 2)
+            # Test
+            temp_loss, temp_correct = test(test_loader, model, loss_fn)
 
-    # Draw training data
-    axes1.errorbar(range(EPOCHS), train_losses, yerr=train_correct, label="Train Data")
-    axes1.set_xlabel("Epoches")
-    axes1.set_ylabel("Traindata")
-    axes1.set_title("Training Data Records")
+            # Record
+            test_losses.append(temp_loss)
+            test_correct.append(1 - temp_correct)
 
-    # Draw testing data
-    axes2.errorbar(range(EPOCHS), test_losses, yerr=test_correct, label="Test Data")
-    axes2.set_xlabel("Epoches")
-    axes2.set_ylabel("Test Losses")
-    axes2.set_title("Testing Data Records")
+        # Init figure
+        fig = plt.figure()
+        axes1 = plt.subplot(1, 2, 1)
+        axes2 = plt.subplot(1, 2, 2)
 
-    # Show the picture
-    plt.show()
+        # Draw training data
+        axes1.errorbar(range(EPOCHS), train_losses, yerr=train_correct, label="Train Data")
+        axes1.set_xlabel("Epoches")
+        axes1.set_ylabel("Traindata")
+        axes1.set_title("Training Data Records")
+
+        # Draw testing data
+        axes2.errorbar(range(EPOCHS), test_losses, yerr=test_correct, label="Test Data")
+        axes2.set_xlabel("Epoches")
+        axes2.set_ylabel("Test Losses")
+        axes2.set_title("Testing Data Records")
+
+        # Save the picture
+        plt.savefig(f"./Results/Final_train_{loop + 1}.png")
+        
+
+        # Clean the figure
+        axes1.clear()
+        axes2.clear()
+        plt.cla()
+        plt.clf()
 
     # Finish the code
+    plt.show()
     print("DONE!")
